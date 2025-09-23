@@ -79,7 +79,10 @@ Get-Service -Name "*SQL*" | Where-Object {$_.Status -eq "Running"}
 ```bash
 cd flask-incidents-sqlserver
 
-# 1. Installer les dépendances Python
+# 1. Installation RAPIDE avec packages pré-compilés (recommandée)
+pip install --only-binary=all -r requirements.txt
+
+# OU installation standard si pas de problème de compilation
 pip install -r requirements.txt
 
 # 2. Tester la connexion SQL Server
@@ -91,6 +94,22 @@ sqlcmd -S localhost\SQLEXPRESS -E -i setup_database.sql
 # 4. Lancer l'application
 python app.py
 # Accès : http://localhost:5001
+```
+
+#### 🚀 Installation ultra-rapide (sans compilation)
+Pour éviter tout problème de compilation avec Visual C++ :
+```bash
+cd flask-incidents-sqlserver
+
+# Installer uniquement des versions pré-compilées
+pip install --only-binary=all Flask==2.3.3
+pip install --only-binary=all Flask-SQLAlchemy==2.5.1  
+pip install --only-binary=all SQLAlchemy==1.4.53
+pip install --only-binary=all pyodbc==4.0.39
+pip install --only-binary=all Werkzeug==2.3.7
+
+# Ou utiliser le script automatique
+fix_sqlalchemy.bat
 ```
 
 #### 🔐 Méthodes d'authentification
@@ -106,10 +125,13 @@ python app.py
 - Script fourni : `enable_sql_authentication.sql`
 
 #### ⚡ Scripts utiles disponibles
+- `install_precompiled.bat/.py` : Installation rapide avec packages pré-compilés (évite Visual C++)
 - `setup_database.sql` : Création complète de la base et des données
 - `test_windows_auth.py` : Test de connexion
+- `fix_sql_connection.py` : Diagnostic automatique des problèmes de connexion
 - `check_authentication.sql` : Vérification du mode d'authentification
 - `enable_sql_authentication.sql` : Activation de l'authentification SQL
+- `fix_sqlalchemy.bat` : Correction automatique des versions SQLAlchemy/Python
 
 ## 🔧 Technologies utilisées
 
@@ -148,9 +170,24 @@ params = urllib.parse.quote_plus(
 
 #### ❌ "Microsoft Visual C++ 14.0 required"
 **Solutions :**
-1. Installer [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
-2. Ou installer Visual Studio Community
-3. Ou utiliser des packages pré-compilés : `pip install --only-binary=all pyodbc`
+1. **Installer pyodbc pré-compilé (Recommandé)** :
+   ```bash
+   pip install --only-binary=all pyodbc
+   ```
+2. **Installation complète pré-compilée** :
+   ```bash
+   pip install --only-binary=all -r requirements.txt
+   ```
+3. **Installation depuis wheel pré-compilé** :
+   ```bash
+   pip install --find-links https://pypi.org/simple/ --only-binary=:all: pyodbc
+   ```
+4. **Alternative : Installer Microsoft C++ Build Tools** :
+   - Télécharger : [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+   - Sélectionner : "C++ build tools" + "MSVC v143" + "Windows SDK"
+5. **Alternative : Visual Studio Community** (plus lourd mais complet)
+
+**💡 Astuce :** La première option évite complètement le besoin de compiler et est la plus rapide !
 
 #### ❌ "ODBC Driver not found"
 **Solution :** Installer [ODBC Driver 17 for SQL Server](https://docs.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)

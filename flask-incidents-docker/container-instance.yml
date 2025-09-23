@@ -1,0 +1,81 @@
+# ============================================
+# Configuration Azure Container Instances (YAML)
+# Flask Incidents Réseau - Template de déploiement
+# ============================================
+
+apiVersion: '2019-12-01'
+location: West Europe
+name: flask-incidents-container-group
+properties:
+  containers:
+  - name: flask-incidents-app
+    properties:
+      image: votreregistry.azurecr.io/flask-incidents:v1.0
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGb: 1.5
+      ports:
+      - port: 80
+        protocol: TCP
+      environmentVariables:
+      - name: FLASK_ENV
+        value: 'production'
+      - name: FLASK_DEBUG
+        value: 'False'
+      - name: PORT
+        value: '80'
+      - name: FLASK_SECRET_KEY
+        secureValue: 'your-production-secret-key-change-this'
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 80
+          scheme: HTTP
+        initialDelaySeconds: 30
+        periodSeconds: 30
+        timeoutSeconds: 10
+        failureThreshold: 3
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 80
+          scheme: HTTP
+        initialDelaySeconds: 15
+        periodSeconds: 15
+        timeoutSeconds: 5
+        failureThreshold: 3
+  osType: Linux
+  restartPolicy: Always
+  ipAddress:
+    type: Public
+    ports:
+    - protocol: TCP
+      port: 80
+    dnsNameLabel: flask-incidents-unique-name
+  imageRegistryCredentials:
+  - server: votreregistry.azurecr.io
+    username: votreregistry
+    password: votre-mot-de-passe-registry
+tags:
+  Environment: Production
+  Application: Flask-Incidents
+  Version: '1.0'
+
+# ============================================
+# INSTRUCTIONS D'UTILISATION
+# ============================================
+#
+# 1. Remplacez les valeurs suivantes :
+#    - votreregistry.azurecr.io : votre registre Azure
+#    - your-production-secret-key : clé secrète sécurisée
+#    - flask-incidents-unique-name : nom DNS unique
+#    - votreregistry : nom d'utilisateur du registre
+#    - votre-mot-de-passe-registry : mot de passe du registre
+#
+# 2. Déployez avec Azure CLI :
+#    az container create --resource-group rg-flask --file container-instance.yml
+#
+# 3. Ou utilisez le portail Azure pour importer ce template YAML
+#
+# ============================================

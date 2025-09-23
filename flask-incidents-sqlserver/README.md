@@ -39,6 +39,31 @@ Chaque incident contient 3 attributs :
 
 ### 1. Installer les dépendances Python
 
+#### 🚀 INSTALLATION RAPIDE avec packages pré-compilés (Recommandée)
+Pour éviter les erreurs de compilation Visual C++ :
+
+**Option 1 : Script automatique**
+```cmd
+# Installation complète automatique (recommandée)
+install_precompiled.bat
+
+# OU version Python
+python install_precompiled.py
+```
+
+**Option 2 : Installation manuelle pré-compilée**
+```bash
+# Installation uniquement de binaires pré-compilés
+pip install --only-binary=all -r requirements.txt
+
+# OU installation package par package
+pip install --only-binary=all Flask==2.3.3
+pip install --only-binary=all SQLAlchemy==1.4.53  
+pip install --only-binary=all Flask-SQLAlchemy==2.5.1
+pip install --only-binary=all pyodbc==4.0.39
+pip install --only-binary=all Werkzeug==2.3.7
+```
+
 #### ⚠️ PROBLÈME CONNU: Python 3.13 + SQLAlchemy 3.x
 Si vous rencontrez l'erreur `AssertionError: Class SQLCoreOperations directly inherits TypingOnly...`:
 

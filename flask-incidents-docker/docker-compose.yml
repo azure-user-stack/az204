@@ -1,0 +1,61 @@
+# ============================================
+# Fichier Docker Compose pour développement
+# Flask Incidents Réseau - Version Docker
+# ============================================
+
+version: '3.8'
+
+services:
+  flask-incidents:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: flask-incidents-docker
+    ports:
+      - "8080:80"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=true
+      - PORT=80
+      - FLASK_SECRET_KEY=dev-secret-key-change-in-production
+    volumes:
+      # Montage pour le développement (hot-reload)
+      - .:/app
+      - /app/__pycache__
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - flask-network
+
+networks:
+  flask-network:
+    driver: bridge
+
+# ============================================
+# COMMANDES UTILES
+# ============================================
+#
+# Démarrer l'application :
+# docker-compose up
+#
+# Démarrer en arrière-plan :
+# docker-compose up -d
+#
+# Reconstruire et démarrer :
+# docker-compose up --build
+#
+# Voir les logs :
+# docker-compose logs -f
+#
+# Arrêter l'application :
+# docker-compose down
+#
+# Arrêter et supprimer les volumes :
+# docker-compose down -v
+#
+# ============================================
