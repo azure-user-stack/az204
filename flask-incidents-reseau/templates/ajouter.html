@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un Incident Réseau</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 30px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background: #ecf0f1;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            background: #3498db;
+            color: white;
+            transform: translateX(-5px);
+        }
+        .back-link::before {
+            content: '←';
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        .form-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 35px;
+            border-radius: 15px;
+            border-left: 6px solid #3498db;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        .form-label.required::after {
+            content: ' *';
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: Arial, sans-serif;
+        }
+        .form-select {
+            cursor: pointer;
+        }
+        .severity-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .severity-option {
+            flex: 1;
+            min-width: 120px;
+        }
+        .severity-radio {
+            display: none;
+        }
+        .severity-label {
+            display: block;
+            padding: 12px 20px;
+            text-align: center;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+        .severity-radio:checked + .severity-label {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .severity-radio[value="Critique"]:checked + .severity-label {
+            background: #e74c3c;
+            border-color: #e74c3c;
+        }
+        .severity-radio[value="Élevée"]:checked + .severity-label {
+            background: #f39c12;
+            border-color: #f39c12;
+        }
+        .severity-radio[value="Moyenne"]:checked + .severity-label {
+            background: #f1c40f;
+            border-color: #f1c40f;
+            color: #2c3e50;
+        }
+        .severity-radio[value="Faible"]:checked + .severity-label {
+            background: #2ecc71;
+            border-color: #2ecc71;
+        }
+        .severity-label:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid rgba(255,255,255,0.5);
+        }
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        .flash-messages {
+            margin-bottom: 25px;
+        }
+        .flash-message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .required-note {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">Retour à la liste des incidents</a>
+        
+        <h1>➕ Ajouter un Nouveau Incident</h1>
+        
+        <!-- Messages flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="/ajouter-incident" class="form-container">
+            <div class="required-note">
+                Les champs marqués d'un * sont obligatoires
+            </div>
+            
+            <div class="form-group">
+                <label for="titre" class="form-label required">Titre de l'incident</label>
+                <textarea 
+                    id="titre" 
+                    name="titre" 
+                    class="form-input form-textarea" 
+                    placeholder="Décrivez brièvement l'incident réseau (ex: Panne serveur principal, Connexion lente, etc.)"
+                    required
+                    maxlength="200"
+                ></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required">Niveau de sévérité</label>
+                <div class="severity-options">
+                    <div class="severity-option">
+                        <input type="radio" id="critique" name="severite" value="Critique" class="severity-radio" required>
+                        <label for="critique" class="severity-label">Critique</label>
+                    </div>
+                    <div class="severity-option">
+                        <input type="radio" id="elevee" name="severite" value="Élevée" class="severity-radio" required>
+                        <label for="elevee" class="severity-label">Élevée</label>
+                    </div>
+                    <div class="severity-option">
+                        <input type="radio" id="moyenne" name="severite" value="Moyenne" class="severity-radio" required>
+                        <label for="moyenne" class="severity-label">Moyenne</label>
+                    </div>
+                    <div class="severity-option">
+                        <input type="radio" id="faible" name="severite" value="Faible" class="severity-radio" required>
+                        <label for="faible" class="severity-label">Faible</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    💾 Enregistrer l'incident
+                </button>
+                <a href="/" class="btn btn-secondary">
+                    ❌ Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // Améliorer l'UX avec du JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus automatique sur le premier champ
+            document.getElementById('titre').focus();
+            
+            // Compteur de caractères pour le titre
+            const titreInput = document.getElementById('titre');
+            const maxLength = titreInput.maxLength;
+            
+            // Créer l'indicateur de compteur
+            const counter = document.createElement('div');
+            counter.style.cssText = 'font-size: 12px; color: #7f8c8d; text-align: right; margin-top: 5px;';
+            titreInput.parentNode.appendChild(counter);
+            
+            function updateCounter() {
+                const remaining = maxLength - titreInput.value.length;
+                counter.textContent = `${titreInput.value.length}/${maxLength} caractères`;
+                
+                if (remaining < 20) {
+                    counter.style.color = '#e74c3c';
+                } else {
+                    counter.style.color = '#7f8c8d';
+                }
+            }
+            
+            titreInput.addEventListener('input', updateCounter);
+            updateCounter(); // Initial call
+        });
+    </script>
+</body>
+</html>
