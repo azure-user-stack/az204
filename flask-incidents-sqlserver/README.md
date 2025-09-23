@@ -39,12 +39,35 @@ Chaque incident contient 3 attributs :
 
 ### 1. Installer les dépendances Python
 
+#### ⚠️ PROBLÈME CONNU: Python 3.13 + SQLAlchemy 3.x
+Si vous rencontrez l'erreur `AssertionError: Class SQLCoreOperations directly inherits TypingOnly...`:
+
+**Solution automatique (Windows):**
+```cmd
+# Exécutez le script de correction
+fix_sqlalchemy.bat
+```
+
+**Solution manuelle:**
+```bash
+cd flask-incidents-sqlserver
+
+# 1. Désinstaller les versions problématiques
+pip uninstall -y SQLAlchemy Flask-SQLAlchemy
+
+# 2. Installer les versions compatibles
+pip install SQLAlchemy==1.4.53
+pip install Flask-SQLAlchemy==2.5.1
+pip install Flask==2.3.3
+pip install pyodbc==4.0.39
+pip install Werkzeug==2.3.7
+```
+
+**Installation standard (si pas de conflit):**
 ```bash
 cd flask-incidents-sqlserver
 pip install -r requirements.txt
 ```
-
-### 2. Configurer SQL Server
 
 #### Option A: Configuration automatique avec le script
 ```bash

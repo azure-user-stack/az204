@@ -8,21 +8,39 @@ from sqlalchemy import text
 app = Flask(__name__)
 
 # Configuration de la base de données SQL Server
-# Modifiez ces paramètres selon votre configuration SQL Server
-DB_SERVER = 'localhost'  # ou l'adresse IP de votre serveur
-DB_DATABASE = 'IncidentsReseau'
-DB_USERNAME = 'sa'  # ou votre nom d'utilisateur
-DB_PASSWORD = 'YourPassword123!'  # à remplacer par votre mot de passe
+# Nom de serveur correct détecté automatiquement
+DB_SERVER = 'vmappincidents\\SQLEXPRESS'  # Nom réel du serveur détecté
+DB_DATABASE = 'IncidentsReseau'           # Base de données existante
 
-# Chaîne de connexion SQL Server avec authentification SQL
+# Configurations alternatives si nécessaire
+DB_CONFIGS_BACKUP = [
+    'vmappincidents\\SQLEXPRESS',     # Configuration détectée (recommandée)
+    '(local)\\SQLEXPRESS',            # Alternative locale
+    '.\\SQLEXPRESS',                  # Notation point
+]
+
+# Option 1: Windows Authentication (Recommandée pour SQL Server Express)
+# Chaîne de connexion avec Windows Authentication
 params = urllib.parse.quote_plus(
     f"DRIVER={{ODBC Driver 17 for SQL Server}};"
     f"SERVER={DB_SERVER};"
     f"DATABASE={DB_DATABASE};"
-    f"UID={DB_USERNAME};"
-    f"PWD={DB_PASSWORD};"
+    f"Trusted_Connection=yes;"
     f"TrustServerCertificate=yes;"
+    f"Connection Timeout=10;"
 )
+
+# Option 2: SQL Server Authentication (décommentez si vous préférez)
+# DB_USERNAME = 'sa'
+# DB_PASSWORD = 'VotreMotDePasse123!'
+# params = urllib.parse.quote_plus(
+#     f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+#     f"SERVER={DB_SERVER};"
+#     f"DATABASE={DB_DATABASE};"
+#     f"UID={DB_USERNAME};"
+#     f"PWD={DB_PASSWORD};"
+#     f"TrustServerCertificate=yes;"
+# )
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mssql+pyodbc:///?odbc_connect={params}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
