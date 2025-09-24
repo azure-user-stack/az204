@@ -1,0 +1,333 @@
+{% extends "layout.html" %}
+
+{% block title %}Ajouter un Incident - Azure Storage{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- En-tête -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-plus-circle text-primary me-2"></i>
+                Nouvel Incident Réseau
+            </h1>
+        </div>
+
+        <!-- Informations Azure Storage -->
+        <div class="alert alert-info">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <i class="fas fa-cloud me-2"></i>
+                    <strong>Stockage Azure</strong> - Les documents seront stockés dans Azure Blob Storage
+                </div>
+                <div class="col-md-4 text-end">
+                    <small>
+                        <i class="fas fa-file-upload me-1"></i>
+                        Max: {{ max_file_size_mb }} MB par fichier
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire -->
+        <form action="{{ url_for('ajouter_incident') }}" method="POST" enctype="multipart/form-data" 
+              class="needs-validation" novalidate>
+            
+            <!-- Informations de base -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informations de l'incident
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Titre -->
+                    <div class="mb-3">
+                        <label for="titre" class="form-label">
+                            <i class="fas fa-heading me-1"></i>
+                            Titre de l'incident *
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="titre" 
+                               name="titre" 
+                               required 
+                               maxlength="200"
+                               placeholder="Ex: Panne du serveur principal">
+                        <div class="invalid-feedback">
+                            Veuillez saisir un titre pour l'incident.
+                        </div>
+                    </div>
+
+                    <!-- Sévérité -->
+                    <div class="mb-3">
+                        <label for="severite" class="form-label">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Sévérité
+                        </label>
+                        <select class="form-select" id="severite" name="severite" required>
+                            <option value="" disabled>Choisir une sévérité</option>
+                            <option value="Critique" data-icon="fas fa-exclamation-triangle text-danger">🔴 Critique</option>
+                            <option value="Élevée" data-icon="fas fa-exclamation-circle text-danger">� Élevée</option>
+                            <option value="Moyenne" data-icon="fas fa-exclamation-circle text-warning" selected>� Moyenne</option>
+                            <option value="Faible" data-icon="fas fa-info-circle text-success">� Faible</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Veuillez sélectionner une sévérité.
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">
+                            <i class="fas fa-align-left me-1"></i>
+                            Description détaillée
+                        </label>
+                        <textarea class="form-control" 
+                                  id="description" 
+                                  name="description" 
+                                  rows="4"
+                                  maxlength="2000"
+                                  placeholder="Décrivez l'incident, les symptômes observés, l'impact sur les utilisateurs..."></textarea>
+                        <div class="form-text">
+                            <span id="descriptionCount">0</span> / 2000 caractères
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-paperclip me-2"></i>
+                        Documents et fichiers
+                    </h5>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Optionnel
+                    </small>
+                </div>
+                <div class="card-body">
+                    <!-- Zone de téléchargement -->
+                    <div class="mb-3">
+                        <label for="documents" class="form-label">
+                            <i class="fas fa-file-upload me-1"></i>
+                            Sélectionner des fichiers
+                        </label>
+                        <input type="file" 
+                               class="form-control" 
+                               id="documents" 
+                               name="documents" 
+                               multiple 
+                               accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.xls,.xlsx,.csv,.ppt,.pptx,.zip"
+                               onchange="validateFileUpload(this); displaySelectedFiles(this);">
+                        <div class="form-text">
+                            <strong>Types supportés :</strong><br>
+                            {% for category, extensions in allowed_extensions.items() %}
+                            <span class="badge bg-light text-dark me-2 mb-1">
+                                {% if category == 'documents' %}
+                                    <i class="fas fa-file-alt me-1"></i>Documents: {{ extensions|join(', ') }}
+                                {% elif category == 'images' %}
+                                    <i class="fas fa-image me-1"></i>Images: {{ extensions|join(', ') }}
+                                {% elif category == 'spreadsheets' %}
+                                    <i class="fas fa-table me-1"></i>Tableurs: {{ extensions|join(', ') }}
+                                {% elif category == 'presentations' %}
+                                    <i class="fas fa-presentation me-1"></i>Présentations: {{ extensions|join(', ') }}
+                                {% elif category == 'archives' %}
+                                    <i class="fas fa-file-archive me-1"></i>Archives: {{ extensions|join(', ') }}
+                                {% else %}
+                                    <i class="fas fa-file me-1"></i>Autres: {{ extensions|join(', ') }}
+                                {% endif %}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Aperçu des fichiers sélectionnés -->
+                    <div id="selectedFilesPreview" class="mt-3" style="display: none;">
+                        <h6 class="text-muted">
+                            <i class="fas fa-list me-1"></i>
+                            Fichiers sélectionnés :
+                        </h6>
+                        <div id="filesList" class="mt-2"></div>
+                    </div>
+
+                    <!-- Informations supplémentaires -->
+                    <div class="alert alert-light mt-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-weight-hanging me-1"></i>
+                                    <strong>Taille max :</strong> {{ max_file_size_mb }} MB par fichier
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-cloud-upload-alt me-1"></i>
+                                    <strong>Stockage :</strong> Azure Blob Storage
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>
+                    Annuler
+                </a>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>
+                    Créer l'incident
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validation du formulaire
+    const form = document.querySelector('.needs-validation');
+    const descriptionTextarea = document.getElementById('description');
+    const descriptionCount = document.getElementById('descriptionCount');
+
+    // Compteur de caractères pour la description
+    function updateDescriptionCount() {
+        const count = descriptionTextarea.value.length;
+        descriptionCount.textContent = count;
+        
+        if (count > 1900) {
+            descriptionCount.className = 'text-warning';
+        } else if (count > 1950) {
+            descriptionCount.className = 'text-danger';
+        } else {
+            descriptionCount.className = 'text-muted';
+        }
+    }
+
+    if (descriptionTextarea) {
+        descriptionTextarea.addEventListener('input', updateDescriptionCount);
+        updateDescriptionCount(); // Initial count
+    }
+
+    // Validation Bootstrap
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+
+function displaySelectedFiles(input) {
+    const preview = document.getElementById('selectedFilesPreview');
+    const filesList = document.getElementById('filesList');
+    
+    if (input.files.length === 0) {
+        preview.style.display = 'none';
+        return;
+    }
+
+    let filesHTML = '';
+    let totalSize = 0;
+
+    for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        totalSize += file.size;
+
+        // Déterminer l'icône selon le type de fichier
+        let icon = 'fas fa-file';
+        if (file.type.startsWith('image/')) {
+            icon = 'fas fa-image text-success';
+        } else if (file.type.includes('pdf')) {
+            icon = 'fas fa-file-pdf text-danger';
+        } else if (file.type.includes('word') || file.type.includes('document')) {
+            icon = 'fas fa-file-word text-primary';
+        } else if (file.type.includes('excel') || file.type.includes('spreadsheet')) {
+            icon = 'fas fa-file-excel text-success';
+        } else if (file.type.includes('powerpoint') || file.type.includes('presentation')) {
+            icon = 'fas fa-file-powerpoint text-warning';
+        } else if (file.type.includes('zip') || file.type.includes('archive')) {
+            icon = 'fas fa-file-archive text-secondary';
+        } else if (file.type.includes('text')) {
+            icon = 'fas fa-file-alt text-info';
+        }
+
+        filesHTML += `
+            <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2 bg-light">
+                <div class="d-flex align-items-center">
+                    <i class="${icon} me-2"></i>
+                    <div>
+                        <small class="fw-semibold">${file.name}</small>
+                        <div class="text-muted" style="font-size: 0.8rem;">
+                            ${formatFileSize(file.size)}
+                            ${file.type ? ' • ' + file.type : ''}
+                        </div>
+                    </div>
+                </div>
+                <span class="badge bg-primary">
+                    <i class="fas fa-check"></i>
+                </span>
+            </div>
+        `;
+    }
+
+    // Ajouter informations sur la taille totale
+    filesHTML += `
+        <div class="text-end mt-2">
+            <small class="text-muted">
+                <i class="fas fa-weight-hanging me-1"></i>
+                Taille totale : <strong>${formatFileSize(totalSize)}</strong>
+            </small>
+        </div>
+    `;
+
+    filesList.innerHTML = filesHTML;
+    preview.style.display = 'block';
+}
+
+// Réutiliser la fonction validateFileUpload du layout
+function validateFileUpload(input) {
+    const maxSize = {{ max_file_size_mb }} * 1024 * 1024; // MB to bytes
+    let valid = true;
+    let messages = [];
+
+    for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        
+        // Check file size
+        if (file.size > maxSize) {
+            valid = false;
+            messages.push(`📁 "${file.name}" est trop volumineux (max {{ max_file_size_mb }} MB)`);
+        }
+
+        // Check if file is empty
+        if (file.size === 0) {
+            valid = false;
+            messages.push(`📁 "${file.name}" est vide`);
+        }
+    }
+
+    if (!valid) {
+        alert('❌ Erreurs détectées :\n\n' + messages.join('\n'));
+        input.value = '';
+        document.getElementById('selectedFilesPreview').style.display = 'none';
+        return false;
+    }
+
+    return true;
+}
+</script>
+{% endblock %}
